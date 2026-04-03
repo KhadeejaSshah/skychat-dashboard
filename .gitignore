@@ -1,2 +1,4 @@
 # add config file:
+.env
+.env.example
 config.yaml
