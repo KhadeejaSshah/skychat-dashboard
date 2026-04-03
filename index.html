@@ -310,7 +310,7 @@ function render(data){
 }
 
 async function loadConfig(){
-  const res = await fetch('/etc/secrets/config.yaml');
+  const res = await fetch('config.yaml');
   if(!res.ok) throw new Error('Failed to load config.yaml');
   const txt = await res.text();
   const lines = txt.split(/\r?\n/);
