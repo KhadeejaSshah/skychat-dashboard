@@ -1,400 +1,703 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkyChat Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0b0f1a; --surface: #131929; --card: #1a2235; --border: #253047;
-    --accent: #00d4aa; --accent2: #4f8ef7; --accent3: #f7a24f;
-    --text: #e8edf5; --muted: #6b7fa3;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyChat Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --surface: #131929;
+      --card: #1a2235;
+      --border: #253047;
+      --accent: #00d4aa;
+      --accent2: #4f8ef7;
+      --accent3: #f7a24f;
+      --text: #e8edf5;
+      --muted: #6b7fa3;
+    }
 
-  #loader { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:1rem; }
-  .loader-logo { font-family:'Space Mono',monospace; font-size:1rem; color:var(--accent); letter-spacing:0.15em; }
-  .spinner { width:36px; height:36px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .loader-text { font-size:0.85rem; color:var(--muted); font-family:'Space Mono',monospace; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  #error-screen { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:1rem; padding:2rem; text-align:center; }
-  .error-title { font-family:'Space Mono',monospace; color:#f74f4f; font-size:1.1rem; }
-  .error-msg { color:var(--muted); font-size:0.85rem; max-width:480px; line-height:1.6; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1rem; font-family:'Space Mono',monospace; }
-  .retry-btn { background:var(--accent); color:#0b0f1a; border:none; border-radius:8px; padding:0.6rem 1.4rem; font-family:'Space Mono',monospace; font-size:0.8rem; font-weight:700; cursor:pointer; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
 
-  #dashboard { display:none; }
-  header { background:var(--surface); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-  .header-logo { font-family:'Space Mono',monospace; font-size:1rem; color:var(--accent); letter-spacing:0.12em; }
-  .header-right { display:flex; align-items:center; gap:1rem; }
-  .last-updated { font-size:0.72rem; color:var(--muted); font-family:'Space Mono',monospace; }
-  .refresh-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:0.3rem 0.8rem; font-size:0.72rem; cursor:pointer; font-family:'Space Mono',monospace; transition:color 0.2s,border-color 0.2s; }
-  .refresh-btn:hover { color:var(--accent); border-color:var(--accent); }
+    #loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 1rem;
+    }
 
-  main { padding:2rem; max-width:1400px; margin:0 auto; }
-  .section-label { font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
-  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .loader-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+    }
 
-  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:1rem; margin-bottom:2.5rem; }
-  .kpi-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem 1.5rem; position:relative; overflow:hidden; }
-  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--ac,var(--accent)); }
-  .kpi-label { font-size:0.75rem; color:var(--muted); margin-bottom:0.4rem; }
-  .kpi-val { font-family:'Space Mono',monospace; font-size:2rem; font-weight:700; color:var(--text); line-height:1; }
-  .kpi-sub { font-size:0.7rem; color:var(--muted); margin-top:0.4rem; }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
 
-  .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:1rem; margin-bottom:2.5rem; }
-  .chart-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem 1.5rem; }
-  .chart-title { font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--muted); margin-bottom:1rem; letter-spacing:0.05em; }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-  .monthly-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:0.75rem; margin-bottom:2.5rem; }
-  .month-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem; }
-  .month-card.has-data { border-color:rgba(0,212,170,0.35); }
-  .month-name { font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem; }
-  .mrow { display:flex; justify-content:space-between; margin-bottom:0.25rem; }
-  .mlab { font-size:0.7rem; color:var(--muted); }
-  .mval { font-family:'Space Mono',monospace; font-size:0.8rem; color:var(--text); }
-  .mval.empty { color:var(--border); }
+    .loader-text {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
 
-  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2.5rem; }
+    #error-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 1rem;
+      padding: 2rem;
+      text-align: center;
+    }
 
-  .cat-table { width:100%; border-collapse:collapse; font-size:0.875rem; }
-  .cat-table th { font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; color:var(--muted); text-align:left; padding:0.6rem 1rem; border-bottom:1px solid var(--border); text-transform:uppercase; }
-  .cat-table td { padding:0.65rem 1rem; border-bottom:1px solid rgba(37,48,71,0.5); color:var(--text); }
-  .cat-table tr:last-child td { border-bottom:none; }
-  .cat-table tr:hover td { background:rgba(255,255,255,0.02); }
-  .bar-wrap { background:var(--border); border-radius:3px; height:6px; overflow:hidden; flex:1; }
-  .bar-fill { height:100%; border-radius:3px; background:var(--accent); }
+    .error-title {
+      font-family: 'Space Mono', monospace;
+      color: #f74f4f;
+      font-size: 1.1rem;
+    }
 
-  @media(max-width:768px) { .charts-row,.two-col { grid-template-columns:1fr; } main { padding:1rem; } header { padding:1rem; } }
+    .error-msg {
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 480px;
+      line-height: 1.6;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Space Mono', monospace;
+    }
 
-  /* Light theme overrides - toggled by adding .light-theme to <html> */
-  .light-theme {
-    --bg: #f7fafc; --surface: #ffffff; --card: #ffffff; --border: #e6eef8;
-    --accent: #0b7285; --accent2: #1d4ed8; --accent3: #f59e0b;
-    --text: #0b1220; --muted: #475569;
-  }
+    .retry-btn {
+      background: var(--accent);
+      color: #0b0f1a;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.4rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-  /* Theme toggle button (small icon button) */
-  .theme-toggle { padding:0.25rem 0.6rem; font-size:0.9rem; display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#0b0f1a; border:none; border-radius:6px; cursor:pointer; font-family:'Space Mono',monospace; transition:background 0.2s,color 0.2s; }
-  .theme-toggle:hover { background:var(--accent2); }
+    #dashboard {
+      display: none;
+    }
 
-  /* Hide original refresh button text, show only icon */
-  .refresh-btn::before { content:'↻'; font-size:1.1rem; display:inline-block; margin-right:0.3rem; }
-  .refresh-btn span { display:none; }
-</style>
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .last-updated {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .refresh-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--ac, var(--accent));
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .chart-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      letter-spacing: 0.05em;
+    }
+
+    .monthly-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .month-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .month-card.has-data {
+      border-color: rgba(0, 212, 170, 0.35);
+    }
+
+    .month-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .mrow {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+    }
+
+    .mlab {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .mval {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+
+    .mval.empty {
+      color: var(--border);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .cat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .cat-table th {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+
+    .cat-table td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid rgba(37, 48, 71, 0.5);
+      color: var(--text);
+    }
+
+    .cat-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .cat-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .bar-wrap {
+      background: var(--border);
+      border-radius: 3px;
+      height: 6px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    @media(max-width:768px) {
+
+      .charts-row,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 1rem;
+      }
+
+      header {
+        padding: 1rem;
+      }
+    }
+
+    /* Light theme overrides - toggled by adding .light-theme to <html> */
+    .light-theme {
+      --bg: #f7fafc;
+      --surface: #ffffff;
+      --card: #ffffff;
+      --border: #e6eef8;
+      --accent: #0b7285;
+      --accent2: #1d4ed8;
+      --accent3: #f59e0b;
+      --text: #0b1220;
+      --muted: #475569;
+    }
+
+    /* Theme toggle button (small icon button) */
+    .theme-toggle {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: #0b0f1a;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent2);
+    }
+
+    /* Hide original refresh button text, show only icon */
+    .refresh-btn::before {
+      content: '↻';
+      font-size: 1.1rem;
+      display: inline-block;
+      margin-right: 0.3rem;
+    }
+
+    .refresh-btn span {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="loader">
-  <div class="loader-logo">◈ SKYCHAT</div>
-  <div class="spinner"></div>
-  <div class="loader-text">connecting to sheets...</div>
-</div>
+  <div id="loader">
+    <div class="loader-logo">◈ SKYCHAT</div>
+    <div class="spinner"></div>
+    <div class="loader-text">connecting to sheets...</div>
+  </div>
 
-<div id="error-screen">
-  <div class="loader-logo">◈ SKYCHAT</div>
-  <div class="error-title">connection failed</div>
-  <div class="error-msg" id="error-msg"></div>
-  <button class="retry-btn" onclick="init()">↻ retry</button>
-</div>
+  <div id="error-screen">
+    <div class="loader-logo">◈ SKYCHAT</div>
+    <div class="error-title">connection failed</div>
+    <div class="error-msg" id="error-msg"></div>
+    <button class="retry-btn" onclick="init()">↻ retry</button>
+  </div>
 
-<div id="dashboard">
-  <header>
-    <div class="header-logo">◈ SKYCHAT ANALYTICS</div>
-    <div class="header-right">
-      <span class="last-updated" id="last-updated"></span>
-      <button class="refresh-btn theme-toggle" id="themeToggle">🌙</button>
-      <button class="refresh-btn" onclick="init()">↻ refresh</button>
-    </div>
-  </header>
-  <main>
-    <div class="section-label">All-time stats</div>
-    <div class="kpi-grid" id="kpi-alltime"></div>
-
-    <div class="section-label">2026 year-to-date</div>
-    <div class="kpi-grid" id="kpi-2026"></div>
-
-    <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-title">Monthly queries — 2026</div>
-        <div style="position:relative;height:220px"><canvas id="queriesChart"></canvas></div>
+  <div id="dashboard">
+    <header>
+      <div class="header-logo">◈ SKYCHAT ANALYTICS</div>
+      <div class="header-right">
+        <span class="last-updated" id="last-updated"></span>
+        <button class="refresh-btn theme-toggle" id="themeToggle">🌙</button>
+        <button class="refresh-btn" onclick="init()">↻ refresh</button>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">Monthly new users — 2026</div>
-        <div style="position:relative;height:220px"><canvas id="usersChart"></canvas></div>
+    </header>
+    <main>
+      <div class="section-label">All-time stats</div>
+      <div class="kpi-grid" id="kpi-alltime"></div>
+
+      <div class="section-label">2026 year-to-date</div>
+      <div class="kpi-grid" id="kpi-2026"></div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Monthly queries — 2026</div>
+          <div style="position:relative;height:220px"><canvas id="queriesChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Monthly new users — 2026</div>
+          <div style="position:relative;height:220px"><canvas id="usersChart"></canvas></div>
+        </div>
       </div>
-    </div>
 
-    <div class="section-label">Monthly breakdown — 2026</div>
-    <div class="monthly-grid" id="monthly-grid"></div>
+      <div class="section-label">Monthly breakdown — 2026</div>
+      <div class="monthly-grid" id="monthly-grid"></div>
 
-    <div class="two-col">
-      <div class="chart-card">
-        <div class="chart-title">Top categories — questions (all time)</div>
-        <div style="position:relative;height:300px"><canvas id="topCatChart"></canvas></div>
+      <div class="two-col">
+        <div class="chart-card">
+          <div class="chart-title">Top categories — questions (all time)</div>
+          <div style="position:relative;height:300px"><canvas id="topCatChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Category share — top 8</div>
+          <div style="position:relative;height:300px"><canvas id="donutChart"></canvas></div>
+        </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">Category share — top 8</div>
-        <div style="position:relative;height:300px"><canvas id="donutChart"></canvas></div>
+
+      <div class="section-label">All categories</div>
+      <div class="chart-card" style="margin-bottom:2.5rem;padding:0;overflow:hidden;">
+        <table class="cat-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Category</th>
+              <th>Questions</th>
+              <th style="width:180px">Share</th>
+            </tr>
+          </thead>
+          <tbody id="cat-tbody"></tbody>
+        </table>
       </div>
-    </div>
+    </main>
+  </div>
 
-    <div class="section-label">All categories</div>
-    <div class="chart-card" style="margin-bottom:2.5rem;padding:0;overflow:hidden;">
-      <table class="cat-table">
-        <thead><tr><th>#</th><th>Category</th><th>Questions</th><th style="width:180px">Share</th></tr></thead>
-        <tbody id="cat-tbody"></tbody>
-      </table>
-    </div>
-  </main>
-</div>
+  <script>
+    const MONTH_MAP = { jan: 0, feb: 1, march: 2, mar: 2, april: 3, apr: 3, may: 4, june: 5, jun: 5, july: 6, jul: 6, august: 7, aug: 7, september: 8, sep: 8, october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11 };
+    const MONTHS_DISPLAY = ['Jan', 'Feb', 'Mar', 'Apr'];
+    //const MONTHS_DISPLAY=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-<script>
-const MONTH_MAP={jan:0,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,october:9,oct:9,november:10,nov:10,december:11,dec:11};
-const MONTHS_DISPLAY=['Jan','Feb','Mar','Apr'];
-//const MONTHS_DISPLAY=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function b64url(s) { return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-function b64urlBuf(buf) { let b=''; new Uint8Array(buf).forEach(x=>b+=String.fromCharCode(x)); return b64url(b); }
-
-async function getToken() {
-  const now = Math.floor(Date.now()/1000);
-  const hdr = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
-  const clm = b64url(JSON.stringify({
-    iss: SA_EMAIL,
-    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now, exp: now+3600
-  }));
-  const stripped = PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g,'');
-  const bin = atob(stripped);
-  const buf = new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
-  const key = await crypto.subtle.importKey('pkcs8',buf,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
-  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(hdr+'.'+clm));
-  const jwt = hdr+'.'+clm+'.'+b64urlBuf(sig);
-  const r = await fetch('https://oauth2.googleapis.com/token',{
-    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
-  });
-  const d = await r.json();
-  if(!d.access_token) throw new Error(d.error_description||JSON.stringify(d));
-  return d.access_token;
-}
-
-async function fetchRows(token) {
-  const range = encodeURIComponent(`${SHEET_NAME}!A1:L45`);
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`,
-    {headers:{Authorization:`Bearer ${token}`}});
-  const d = await r.json();
-  if(!d.values) throw new Error(d.error?.message||'No data from Sheets API');
-  return d.values;
-}
-
-function parse(rows) {
-  const categories=[], monthly=Array.from({length:12},()=>({queries:null,newUsers:null,cost:null}));
-  let totalThreads=0,totalQueries=0,totalCost=0;
-  for(let i=1;i<rows.length;i++){
-    const r=rows[i];
-    const c0=r[0]?String(r[0]).trim():'', c1=r[1]?String(r[1]).trim():'';
-    const c0l=c0.toLowerCase();
-    if(c0l.includes('total threads')){totalThreads=parseFloat(c1)||0;continue;}
-    if(c0l.includes('total queries')){totalQueries=parseFloat(c1)||0;continue;}
-    if(c0l==='cost:'){totalCost=parseFloat(c1)||0;continue;}
-    const q=parseFloat(c1);
-    if(c0&&!isNaN(q)&&q>0&&!c0l.includes('all time')&&!c0l.includes('total')){
-      categories.push({name:c0,questions:q});
+    function parse(rows) {
+      const categories = [], monthly = Array.from({ length: 12 }, () => ({ queries: null, newUsers: null, cost: null }));
+      let totalThreads = 0, totalQueries = 0, totalCost = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const c0 = r[0] ? String(r[0]).trim() : '', c1 = r[1] ? String(r[1]).trim() : '';
+        const c0l = c0.toLowerCase();
+        if (c0l.includes('total threads')) { totalThreads = parseFloat(c1) || 0; continue; }
+        if (c0l.includes('total queries')) { totalQueries = parseFloat(c1) || 0; continue; }
+        if (c0l === 'cost:') { totalCost = parseFloat(c1) || 0; continue; }
+        const q = parseFloat(c1);
+        if (c0 && !isNaN(q) && q > 0 && !c0l.includes('all time') && !c0l.includes('total')) {
+          categories.push({ name: c0, questions: q });
+        }
+        const ml = r[4] ? String(r[4]).trim().toLowerCase() : null;
+        if (ml && MONTH_MAP[ml] !== undefined) {
+          const idx = MONTH_MAP[ml];
+          const qv = parseFloat(r[5]); if (!isNaN(qv)) monthly[idx].queries = qv;
+          const uv = parseFloat(r[6]); if (!isNaN(uv)) monthly[idx].newUsers = uv;
+          const cv = parseFloat(r[7]); if (!isNaN(cv)) monthly[idx].cost = cv;
+        }
+      }
+      categories.sort((a, b) => b.questions - a.questions);
+      return { categories, totalThreads, totalQueries, totalCost, monthly };
     }
-    const ml = r[4] ? String(r[4]).trim().toLowerCase() : null;
-    if(ml&&MONTH_MAP[ml]!==undefined){
-      const idx=MONTH_MAP[ml];
-      const qv=parseFloat(r[5]);if(!isNaN(qv))monthly[idx].queries=qv;
-      const uv=parseFloat(r[6]);if(!isNaN(uv))monthly[idx].newUsers=uv;
-      const cv=parseFloat(r[7]);if(!isNaN(cv))monthly[idx].cost=cv;
-    }
-  }
-  categories.sort((a,b)=>b.questions-a.questions);
-  return{categories,totalThreads,totalQueries,totalCost,monthly};
-}
 
-let CH={};
-function killCharts(){Object.values(CH).forEach(c=>c.destroy());CH={};}
+    let CH = {};
+    function killCharts() { Object.values(CH).forEach(c => c.destroy()); CH = {}; }
 
-function render(data){
-  const{categories,totalThreads,totalQueries,totalCost,monthly}=data;
-  const totalQ=categories.reduce((s,c)=>s+c.questions,0);
-  const ytdQ=monthly.reduce((s,m)=>s+(m.queries||0),0);
-  const ytdU=monthly.reduce((s,m)=>s+(m.newUsers||0),0);
-  const ytdC=monthly.reduce((s,m)=>s+(m.cost||0),0);
+    function render(data) {
+      const { categories, totalThreads, totalQueries, totalCost, monthly } = data;
+      const totalQ = categories.reduce((s, c) => s + c.questions, 0);
+      const ytdQ = monthly.reduce((s, m) => s + (m.queries || 0), 0);
+      const ytdU = monthly.reduce((s, m) => s + (m.newUsers || 0), 0);
+      const ytdC = monthly.reduce((s, m) => s + (m.cost || 0), 0);
 
-  function mkKPI(id,items){
-    const el=document.getElementById(id);el.innerHTML='';
-    items.forEach(k=>{
-      const d=document.createElement('div');d.className='kpi-card';d.style.setProperty('--ac',k.c);
-      d.innerHTML=`<div class="kpi-label">${k.l}</div><div class="kpi-val">${k.v}</div><div class="kpi-sub">${k.s}</div>`;
-      el.appendChild(d);
-    });
-  }
-  mkKPI('kpi-alltime',[
-    {l:'Total threads',v:totalThreads.toLocaleString(),s:'since launch',c:'var(--accent)'},
-    {l:'Total queries',v:totalQueries.toLocaleString(),s:'since launch',c:'var(--accent2)'},
-    {l:'Total cost',v:'$'+totalCost,s:'since launch',c:'var(--accent3)'},
-    {l:'Categories',v:categories.length,s:'question types',c:'#a78bfa'},
-    {l:'Total questions',v:totalQ.toLocaleString(),s:'all categories',c:'#f472b6'},
-  ]);
-  mkKPI('kpi-2026',[
-    {l:'2026 queries',v:ytdQ.toLocaleString(),s:'year to date',c:'var(--accent)'},
-    {l:'2026 new users',v:ytdU.toLocaleString(),s:'year to date',c:'var(--accent2)'},
-    {l:'2026 cost',v:'$'+ytdC.toFixed(1),s:'year to date',c:'var(--accent3)'},
-  ]);
+      function mkKPI(id, items) {
+        const el = document.getElementById(id); el.innerHTML = '';
+        items.forEach(k => {
+          const d = document.createElement('div'); d.className = 'kpi-card'; d.style.setProperty('--ac', k.c);
+          d.innerHTML = `<div class="kpi-label">${k.l}</div><div class="kpi-val">${k.v}</div><div class="kpi-sub">${k.s}</div>`;
+          el.appendChild(d);
+        });
+      }
+      mkKPI('kpi-alltime', [
+        { l: 'Total threads', v: totalThreads.toLocaleString(), s: 'since launch', c: 'var(--accent)' },
+        { l: 'Total queries', v: totalQueries.toLocaleString(), s: 'since launch', c: 'var(--accent2)' },
+        { l: 'Total cost', v: '$' + totalCost, s: 'since launch', c: 'var(--accent3)' },
+        { l: 'Categories', v: categories.length, s: 'question types', c: '#a78bfa' },
+        { l: 'Total questions', v: totalQ.toLocaleString(), s: 'all categories', c: '#f472b6' },
+      ]);
+      mkKPI('kpi-2026', [
+        { l: '2026 queries', v: ytdQ.toLocaleString(), s: 'year to date', c: 'var(--accent)' },
+        { l: '2026 new users', v: ytdU.toLocaleString(), s: 'year to date', c: 'var(--accent2)' },
+        { l: '2026 cost', v: '$' + ytdC.toFixed(1), s: 'year to date', c: 'var(--accent3)' },
+      ]);
 
-  const filledQ=MONTHS_DISPLAY.map((m,i)=>({m,...monthly[i]})).filter(d=>d.queries!==null);
-  const filledU=MONTHS_DISPLAY.map((m,i)=>({m,...monthly[i]})).filter(d=>d.newUsers!==null);
-  killCharts();
+      const filledQ = MONTHS_DISPLAY.map((m, i) => ({ m, ...monthly[i] })).filter(d => d.queries !== null);
+      const filledU = MONTHS_DISPLAY.map((m, i) => ({ m, ...monthly[i] })).filter(d => d.newUsers !== null);
+      killCharts();
 
-  CH.q=new Chart(document.getElementById('queriesChart'),{type:'bar',
-    data:{labels:filledQ.map(d=>d.m),datasets:[{data:filledQ.map(d=>d.queries),backgroundColor:'rgba(0,212,170,0.75)',borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:'#6b7fa3',font:{size:11}},grid:{display:false},border:{color:'#253047'}},
-              y:{ticks:{color:'#6b7fa3',font:{size:11}},grid:{color:'rgba(37,48,71,0.8)'},border:{display:false}}}}});
+      CH.q = new Chart(document.getElementById('queriesChart'), {
+        type: 'bar',
+        data: { labels: filledQ.map(d => d.m), datasets: [{ data: filledQ.map(d => d.queries), backgroundColor: 'rgba(0,212,170,0.75)', borderRadius: 6 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6b7fa3', font: { size: 11 } }, grid: { display: false }, border: { color: '#253047' } },
+            y: { ticks: { color: '#6b7fa3', font: { size: 11 } }, grid: { color: 'rgba(37,48,71,0.8)' }, border: { display: false } }
+          }
+        }
+      });
 
-  CH.u=new Chart(document.getElementById('usersChart'),{type:'line',
-    data:{labels:filledU.map(d=>d.m),datasets:[{data:filledU.map(d=>d.newUsers),borderColor:'#4f8ef7',
-      backgroundColor:'rgba(79,142,247,0.08)',borderWidth:2,pointRadius:5,pointBackgroundColor:'#4f8ef7',tension:0.4,fill:true}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:'#6b7fa3',font:{size:11}},grid:{display:false},border:{color:'#253047'}},
-              y:{ticks:{color:'#6b7fa3',font:{size:11}},grid:{color:'rgba(37,48,71,0.8)'},border:{display:false}}}}});
+      CH.u = new Chart(document.getElementById('usersChart'), {
+        type: 'line',
+        data: {
+          labels: filledU.map(d => d.m), datasets: [{
+            data: filledU.map(d => d.newUsers), borderColor: '#4f8ef7',
+            backgroundColor: 'rgba(79,142,247,0.08)', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#4f8ef7', tension: 0.4, fill: true
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6b7fa3', font: { size: 11 } }, grid: { display: false }, border: { color: '#253047' } },
+            y: { ticks: { color: '#6b7fa3', font: { size: 11 } }, grid: { color: 'rgba(37,48,71,0.8)' }, border: { display: false } }
+          }
+        }
+      });
 
-  const top10=categories.slice(0,10);
-  CH.t=new Chart(document.getElementById('topCatChart'),{type:'bar',
-    data:{labels:top10.map(c=>c.name.length>20?c.name.slice(0,18)+'…':c.name),
-          datasets:[{data:top10.map(c=>c.questions),backgroundColor:'#4f8ef7',borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:'#6b7fa3',font:{size:11}},grid:{color:'rgba(37,48,71,0.8)'},border:{display:false}},
-              y:{ticks:{color:'#e8edf5',font:{size:11}},grid:{display:false},border:{display:false}}}}});
+      const top10 = categories.slice(0, 10);
+      CH.t = new Chart(document.getElementById('topCatChart'), {
+        type: 'bar',
+        data: {
+          labels: top10.map(c => c.name.length > 20 ? c.name.slice(0, 18) + '…' : c.name),
+          datasets: [{ data: top10.map(c => c.questions), backgroundColor: '#4f8ef7', borderRadius: 4 }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6b7fa3', font: { size: 11 } }, grid: { color: 'rgba(37,48,71,0.8)' }, border: { display: false } },
+            y: { ticks: { color: '#e8edf5', font: { size: 11 } }, grid: { display: false }, border: { display: false } }
+          }
+        }
+      });
 
-  const top8=categories.slice(0,8),others=categories.slice(8).reduce((s,c)=>s+c.questions,0);
-  const pal=['#00d4aa','#4f8ef7','#f7a24f','#f74f4f','#a78bfa','#f472b6','#34d399','#fb923c','#6b7fa3'];
-  CH.d=new Chart(document.getElementById('donutChart'),{type:'doughnut',
-    data:{labels:[...top8.map(c=>c.name),others>0?'Others':null].filter(Boolean),
-          datasets:[{data:[...top8.map(c=>c.questions),others>0?others:null].filter(Boolean),backgroundColor:pal,borderColor:'#131929',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
-      plugins:{legend:{position:'bottom',labels:{color:'#6b7fa3',font:{size:10},boxWidth:10,padding:8}}}}});
+      const top8 = categories.slice(0, 8), others = categories.slice(8).reduce((s, c) => s + c.questions, 0);
+      const pal = ['#00d4aa', '#4f8ef7', '#f7a24f', '#f74f4f', '#a78bfa', '#f472b6', '#34d399', '#fb923c', '#6b7fa3'];
+      CH.d = new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: {
+          labels: [...top8.map(c => c.name), others > 0 ? 'Others' : null].filter(Boolean),
+          datasets: [{ data: [...top8.map(c => c.questions), others > 0 ? others : null].filter(Boolean), backgroundColor: pal, borderColor: '#131929', borderWidth: 2 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '60%',
+          plugins: { legend: { position: 'bottom', labels: { color: '#6b7fa3', font: { size: 10 }, boxWidth: 10, padding: 8 } } }
+        }
+      });
 
-  const mg=document.getElementById('monthly-grid');mg.innerHTML='';
-  MONTHS_DISPLAY.forEach((m,i)=>{
-    const d=monthly[i],h=d.queries!==null||d.newUsers!==null||d.cost!==null;
-    const card=document.createElement('div');card.className='month-card'+(h?' has-data':'');
-    card.innerHTML=`<div class="month-name">${m}</div>
-      <div class="mrow"><span class="mlab">Queries</span><span class="mval${d.queries===null?' empty':''}">${d.queries!==null?d.queries.toLocaleString():'—'}</span></div>
-      <div class="mrow"><span class="mlab">New users</span><span class="mval${d.newUsers===null?' empty':''}">${d.newUsers!==null?d.newUsers:'—'}</span></div>
-      <div class="mrow"><span class="mlab">Cost</span><span class="mval${d.cost===null?' empty':''}">${d.cost!==null?'$'+d.cost.toFixed(1):'—'}</span></div>`;
-    mg.appendChild(card);
-  });
+      const mg = document.getElementById('monthly-grid'); mg.innerHTML = '';
+      MONTHS_DISPLAY.forEach((m, i) => {
+        const d = monthly[i], h = d.queries !== null || d.newUsers !== null || d.cost !== null;
+        const card = document.createElement('div'); card.className = 'month-card' + (h ? ' has-data' : '');
+        card.innerHTML = `<div class="month-name">${m}</div>
+      <div class="mrow"><span class="mlab">Queries</span><span class="mval${d.queries === null ? ' empty' : ''}">${d.queries !== null ? d.queries.toLocaleString() : '—'}</span></div>
+      <div class="mrow"><span class="mlab">New users</span><span class="mval${d.newUsers === null ? ' empty' : ''}">${d.newUsers !== null ? d.newUsers : '—'}</span></div>
+      <div class="mrow"><span class="mlab">Cost</span><span class="mval${d.cost === null ? ' empty' : ''}">${d.cost !== null ? '$' + d.cost.toFixed(1) : '—'}</span></div>`;
+        mg.appendChild(card);
+      });
 
-  const tb=document.getElementById('cat-tbody');tb.innerHTML='';
-  const maxQ=categories[0]?.questions||1,tot=categories.reduce((s,c)=>s+c.questions,0);
-  categories.forEach((c,i)=>{
-    const pct=((c.questions/tot)*100).toFixed(1),bw=((c.questions/maxQ)*100).toFixed(1);
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.7rem">${i+1}</td>
+      const tb = document.getElementById('cat-tbody'); tb.innerHTML = '';
+      const maxQ = categories[0]?.questions || 1, tot = categories.reduce((s, c) => s + c.questions, 0);
+      categories.forEach((c, i) => {
+        const pct = ((c.questions / tot) * 100).toFixed(1), bw = ((c.questions / maxQ) * 100).toFixed(1);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.7rem">${i + 1}</td>
       <td>${c.name}</td><td style="font-family:'Space Mono',monospace">${c.questions.toLocaleString()}</td>
       <td><div style="display:flex;align-items:center;gap:6px">
         <div class="bar-wrap"><div class="bar-fill" style="width:${bw}%"></div></div>
         <span style="font-size:0.7rem;color:var(--muted);font-family:'Space Mono',monospace;min-width:34px">${pct}%</span>
       </div></td>`;
-    tb.appendChild(tr);
-  });
-}
-
-async function loadConfig(){
-  const res = await fetch('config.yaml');
-  if(!res.ok) throw new Error('Failed to load config.yaml');
-  const txt = await res.text();
-  const lines = txt.split(/\r?\n/);
-  const cfg = {};
-  for(let i=0;i<lines.length;i++){
-    const line = lines[i];
-    if(!line || /^\s*$/.test(line)) continue;
-    const m = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
-    if(!m) continue;
-    const key = m[1];
-    let val = m[2];
-    if(val === '|'){
-      // read indented block
-      const block = [];
-      i++;
-      while(i<lines.length && (lines[i].startsWith('  ') || lines[i].trim()==='')){
-        block.push(lines[i].replace(/^  /, ''));
-        i++;
-      }
-      i--;
-      val = block.join('\n');
-    } else {
-      // strip surrounding quotes if present
-      const q = val.match(/^"([\s\S]*)"$/);
-      if(q) val = q[1];
-      val = val.trim();
+        tb.appendChild(tr);
+      });
     }
-    cfg[key]=val;
-  }
-  SA_EMAIL = cfg.SA_EMAIL;
-  SHEET_ID = cfg.SHEET_ID;
-  SHEET_NAME = cfg.SHEET_NAME;
-  PRIVATE_KEY = cfg.PRIVATE_KEY;
-}
 
-async function init(){
-  // apply saved theme early
-  const saved = localStorage.getItem('theme');
-  if(saved==='light') document.documentElement.classList.add('light-theme');
-  document.getElementById('themeToggle').textContent = document.documentElement.classList.contains('light-theme') ? '☀️' : '🌙';
+    async function init() {
+      // apply saved theme early
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') document.documentElement.classList.add('light-theme');
+      document.getElementById('themeToggle').textContent = document.documentElement.classList.contains('light-theme') ? '☀️' : '🌙';
 
-  document.getElementById('loader').style.display='flex';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('error-screen').style.display='none';
-  try{
-    document.querySelector('.loader-text').textContent='loading config...';
-    await loadConfig();
-    document.querySelector('.loader-text').textContent='signing in...';
-    const token=await getToken();
-    document.querySelector('.loader-text').textContent='loading sheet data...';
-    const rows=await fetchRows(token);
-    const data=parse(rows);
-    document.getElementById('loader').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    render(data);
-    document.getElementById('last-updated').textContent='updated '+new Date().toLocaleTimeString();
-  }catch(e){
-    document.getElementById('loader').style.display='none';
-    document.getElementById('error-screen').style.display='flex';
-    document.getElementById('error-msg').textContent=e.message;
-  }
-}
-init();
+      document.getElementById('loader').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('error-screen').style.display = 'none';
+      try {
+        document.querySelector('.loader-text').textContent = 'fetching data...';
+        const r = await fetch('/api/data');
+        if (!r.ok) {
+          const err = await r.json();
+          throw new Error(err.error || 'Failed to fetch data from API');
+        }
+        const data_rows = await r.json();
+
+        document.querySelector('.loader-text').textContent = 'parsing data...';
+        const data = parse(data_rows.values);
+
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        render(data);
+        document.getElementById('last-updated').textContent = 'updated ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('error-screen').style.display = 'flex';
+        document.getElementById('error-msg').textContent = e.message;
+      }
+    }
+    init();
 
 
-// Theme toggle script
-const toggleBtn = document.getElementById('themeToggle');
-const currentTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.classList.toggle('light-theme', currentTheme === 'light');
+    // Theme toggle script
+    const toggleBtn = document.getElementById('themeToggle');
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.classList.toggle('light-theme', currentTheme === 'light');
 
-toggleBtn.addEventListener('click', () => {
-  const isLight = document.documentElement.classList.toggle('light-theme');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  toggleBtn.textContent = isLight ? '🌙' : '☀️';
-});
+    toggleBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-theme');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      toggleBtn.textContent = isLight ? '🌙' : '☀️';
+    });
 
-// Refresh button now also acts as a retry button
-document.querySelector('.refresh-btn').addEventListener('click', () => {
-  document.getElementById('loader').style.display='flex';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('error-screen').style.display='none';
-  init();
-});
-</script>
+    // Refresh button now also acts as a retry button
+    document.querySelector('.refresh-btn').addEventListener('click', () => {
+      document.getElementById('loader').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('error-screen').style.display = 'none';
+      init();
+    });
+  </script>
 </body>
+
 </html>

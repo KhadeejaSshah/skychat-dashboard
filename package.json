@@ -1,0 +1,9 @@
+{
+  "name": "skychat-dashboard",
+  "version": "1.0.0",
+  "description": "Secure dashboard for SkyChat analytics",
+  "main": "api/data.js",
+  "dependencies": {
+    "google-auth-library": "^9.6.3"
+  }
+}
